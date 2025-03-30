@@ -1,12 +1,9 @@
-import os
 from contextlib import asynccontextmanager
 import uvicorn
 from fastapi.openapi.utils import get_openapi
 
-from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from fastapi import FastAPI
 
-from sqlalchemy.orm import sessionmaker, declarative_base
 from app import create_app
 from app.database import Base, engine
 
