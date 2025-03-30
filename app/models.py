@@ -1,10 +1,10 @@
 from datetime import datetime
 
-from sqlalchemy import Column, Integer, String, Boolean, DateTime
+from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.ext.asyncio import async_session
-from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy.orm import relationship
 
-from main import Base
+from app.database import Base
 
 """
 SQL-ALCHEMY МОДЕЛИ
