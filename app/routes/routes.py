@@ -122,6 +122,9 @@ async def yandex_callback(code: str, db: AsyncSession = Depends(get_db)):
     username = user_data.get("display_name", "NoName")
     email = user_data.get("default_email")
 
+    result = await db.execute(text("SELECT count(*) FROM users"))
+    users_count = result.scalar()  # Получаем количество пользователей
+
     # Поиск пользователя в БД по yandex_id
     result = await db.execute(text("SELECT * FROM users WHERE yandex_id = :yandex_id"), {"yandex_id": yandex_id})
     user_row = result.fetchone()
@@ -130,7 +133,7 @@ async def yandex_callback(code: str, db: AsyncSession = Depends(get_db)):
             yandex_id=yandex_id,
             username=username,
             email=email,
-            is_superuser=False  # Логику определения суперпользователя можно настроить отдельно
+            is_superuser=(users_count == 0)  # Логику определения суперпользователя можно настроить отдельно
         )
         db.add(new_user)
         await db.commit()
@@ -179,6 +182,20 @@ async def delete_user(user_id: int, db: AsyncSession = Depends(get_db),
     await db.delete(user)
     await db.commit()
     return {"detail": "Пользователь удалён"}
+
+@router.get("/users", response_model=List[UserOut])
+async def list_all_users(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(superuser_required)
+):
+    result = await db.execute(text("SELECT * FROM users"))
+    rows = result.fetchall()
+    users = []
+    for row in rows:
+        user = await db.get(User, row[0])
+        users.append(user)
+    return users
+
 
 """
 ЭНДПОИНТЫ РАБОТЫ С АУДИО

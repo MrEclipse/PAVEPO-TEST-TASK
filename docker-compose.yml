@@ -12,7 +12,7 @@ services:
       - YANDEX_REDIRECT_URI=http://localhost:8000/auth/yandex/callback
       - JWT_SECRET=adea1f25c9f637d7a6cd34bc0ef8a2fab2ce26211722ee03c97c0009289321585c9be331fdce27972ebaec47c9ad609a5bb83a546b7653d0cbdb554308f21139dc8e3b8780cfe23d2577e5f8a05b6cb6b85f57f60189767f20df6e2a6e2807d6096fb2b37be4906e639f5da777123986530fe103fb2f31af19d98cb5976fb53c6748832ab9dd4a84f8980652d3bfbb79c56bac9b4f519c96de5471a0e41ec8356e12a5b9e651443ff67a24f182ce47a44c036da07369475884116647fa6ad5c7230a92efaaeed72a3cddc3cc5f931ab55957240f9a3899ec1eb889933ff89f292f4a39d226915d0e02d3f9cd304c3f10c29321d897df344442e813d291287943  # ОБЯЗАТЕЛЬНО поменяйте на реальное значение!
   db:
-    image: postgres:16
+    image: postgres:16-alpine
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
