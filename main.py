@@ -4,12 +4,16 @@ from datetime import datetime, timedelta
 from typing import Optional
 
 import jwt
+from pydantic import BaseModel
 
 from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession
 from fastapi import FastAPI, HTTPException, Depends, status
 from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy import text, Column, Integer, String, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import sessionmaker, declarative_base, relationship
+from starlette.responses import RedirectResponse
+from routes import router
+from . import create
 
 DATABASE_URL = os.getenv("DATABASE_URL", "postgresql+asyncpg://postgres:postgres@db:5432/postgres")
 YANDEX_CLIENT_ID = os.getenv("YANDEX_CLIENT_ID", "fa167c5799d149dfa27a6c800f1ec2c3")
@@ -31,67 +35,10 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Audio-reg service")
 
-async def get_db():
-    async with async_session() as session:
-        yield session
-
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/auth/token")
-
-#SQLALCHEMY модели
-class User(Base):
-    __tablename__ = "users"
-
-    id = Column(Integer, primary_key=True, index=True)
-    yandex_id = Column(String, unique=True, index=True, nullable=True)
-    username = Column(String, unique=True, index=True)
-    email = Column(String, unique=True, index=True, nullable=True)
-    is_superuser = Column(Boolean, default=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
-
-    audio_files = relationship("AudioFile", back_populates="owner")
 
 
-class AudioFile(Base):
-    __tablename__ = "audio_files"
 
-    id = Column(Integer, primary_key=True, index=True)
-    user_id = Column(Integer, ForeignKey("users.id"))
-    file_name = Column(String, nullable=False)
-    file_path = Column(String, nullable=False)
-    uploaded_at = Column(DateTime, default=datetime.utcnow)
 
-    owner = relationship("User", back_populates="audio_files")
 
-def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
-    to_encode = data.copy()
-    if expires_delta:
-        expire = datetime.utcnow() + expires_delta
-    else:
-        expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
-    to_encode.update({"exp": expire})
-    encoded_jwt = jwt.encode(to_encode, JWT_SECRET, algorithm=JWT_ALGORITHM)
-    return encoded_jwt
 
-async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)) -> User:
-    try:
-        payload = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
-        user_id: int = payload.get("sub")
-        if user_id is None:
-            raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
-                                detail="Неверные учетные данные: отсутствует sub")
-    except jwt.ExpiredSignatureError:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Токен просрочен")
-    except jwt.PyJWTError as e:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail=f"Ошибка декодирования токена: {e}")
 
-    result = await db.execute(text("SELECT * FROM users WHERE id = :id"), {"id": int(user_id)})
-    user_row = result.fetchone()
-    if user_row is None:
-        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Пользователь не найден")
-    user = await db.get(User, int(user_id))
-    return user
-
-def superuser_required(user: User = Depends(get_current_user)):
-    if not user.is_superuser:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Доступ запрещён")
-    return user
