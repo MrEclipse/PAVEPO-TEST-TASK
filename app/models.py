@@ -1,15 +1,14 @@
 from datetime import datetime
 
 from sqlalchemy import Column, Integer, String, Boolean, DateTime, ForeignKey
-from sqlalchemy.ext.asyncio import async_session
+from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship
 
-from app.database import Base
+from app.database import Base, async_session
 
 """
 SQL-ALCHEMY МОДЕЛИ
 """
-
 
 async def get_db():
     async with async_session() as session:
