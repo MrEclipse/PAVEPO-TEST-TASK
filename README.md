@@ -49,8 +49,8 @@ docker-compose up --build -d
 Если сервис базы данных (db) не загружается (например, появляется ошибка TLS handshake timeout), откройте настройки Docker Desktop и добавьте строку для зеркала реестра (например, в настройках Docker Engine добавьте "registry-mirrors": ["https://mirror.gcr.io/"]). Затем перезапустите Docker Desktop.
 
 3. Авторизация через Yandex и получение JWT
-Swagger UI не позволяет логиниться напрямую для обеспечения безопасности. Поэтому:
-
+Вся работа проходит в ```localhost:8000/docs``` !!!!!
+Swagger UI не позволяет логиниться напрямую для обеспечения безопасности.
 Скопируйте ссылку:
 http://localhost:8000/auth/yandex/login
 
